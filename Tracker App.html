@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Expense Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f2f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .balance {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .inc-exp {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+        
+        .inc-exp div {
+            background: #f9f9f9;
+            padding: 10px;
+            width: 48%;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        input,
+        select,
+        button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+        
+        button {
+            background-color: #28a745;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .item {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f1f1;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 6px;
+        }
+        
+        .item.income {
+            border-left: 5px solid green;
+        }
+        
+        .item.expense {
+            border-left: 5px solid red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Expense Tracker</h2>
+        <div class="balance">Balance: ₹0</div>
+        <div class="inc-exp">
+            <div>Income: ₹0</div>
+            <div>Expense: ₹0</div>
+        </div>
+        <form id="form">
+            <input type="text" id="desc" placeholder="Description" required />
+            <input type="number" id="amount" placeholder="Amount" required />
+            <select id="type">
+        <option value="income">Income</option>
+        <option value="expense">Expense</option>
+      </select>
+            <button type="submit">Add Transaction</button>
+        </form>
+        <ul id="list"></ul>
+    </div>
+    <script>
+        const form = document.getElementById('form');
+        const desc = document.getElementById('desc');
+        const amount = document.getElementById('amount');
+        const type = document.getElementById('type');
+        const list = document.getElementById('list');
+        const balanceEl = document.querySelector('.balance');
+        const incomeEl = document.querySelector('.inc-exp div:first-child');
+        const expenseEl = document.querySelector('.inc-exp div:last-child');
+
+        let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+
+        function updateDOM() {
+            list.innerHTML = '';
+            let income = 0;
+            let expense = 0;
+            transactions.forEach((txn, index) => {
+                const sign = txn.type === 'income' ? '+' : '-';
+                const cls = txn.type === 'income' ? 'income' : 'expense';
+                const item = document.createElement('li');
+                item.classList.add('item', cls);
+                item.innerHTML = `
+          ${txn.desc} <span>${sign}₹${txn.amount}</span>
+          <button onclick="removeTransaction(${index})">X</button>
+        `;
+                list.appendChild(item);
+
+                if (txn.type === 'income') income += txn.amount;
+                else expense += txn.amount;
+            });
+            const balance = income - expense;
+            balanceEl.innerText = `Balance: ₹${balance}`;
+            incomeEl.innerText = `Income: ₹${income}`;
+            expenseEl.innerText = `Expense: ₹${expense}`;
+        }
+
+        function removeTransaction(index) {
+            transactions.splice(index, 1);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            updateDOM();
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const txn = {
+                desc: desc.value,
+                amount: +amount.value,
+                type: type.value
+            };
+            transactions.push(txn);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            desc.value = '';
+            amount.value = '';
+            updateDOM();
+        });
+
+        updateDOM();
+    </script>
+</body>
+
+</html>
